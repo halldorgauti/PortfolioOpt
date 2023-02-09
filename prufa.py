@@ -43,7 +43,7 @@ col1, col2, col3 = st.columns(3)
 
 for i,tick in enumerate(TICKERS):
     if i<5:
-        if col1.checkbox(tick[:-3]):
+        if col1.checkbox(tick[:-3], value = True):
             if tick not in TICKERS_selection:
                 TICKERS_selection += [tick]
             else:
@@ -83,7 +83,7 @@ if len(TICKERS_selection) > 1:
     mu_gmv = b/c
     var_gmv = 1/c
 
-    mus = np.linspace(np.min(mu) - np.ptp(mu)*2, np.max(mu) + np.ptp(mu)*2)
+    mus = np.linspace(np.min(mu) - np.ptp(mu)*2, np.max(mu) + np.ptp(mu)*2,1000)
     sigmas = np.sqrt((c*mus**2 - 2*b*mus + a) / (a*c - b**2)).squeeze()
 
     sigma_p = np.linspace(0, 1)
@@ -128,7 +128,7 @@ if len(TICKERS_selection) > 1:
     #fig.update_traces(selector=dict(type='scatter', mode='markers'),text=TICKERS_selection, hoverinfo='text')
     fig.update_layout(xaxis=dict(range=[0, max(0.8,mu_e_tan[0,0]*1.3)]),
                   yaxis=dict(range=[-0.6, max(1,mu_e_tan[0,0]*1.3)]))
-    st.plotly_chart(fig)
+    st.plotly_chart(fig,use_container_width=True)
 st.write(type(mu_e_tan), "  ", mu_e_tan[0,0])
 st.write([-0.6, max(1,mu_e_tan[0,0]*1.3)[0]])
 #st.write(len(TICKERS_selection))
