@@ -1,14 +1,13 @@
 import streamlit as st
 
-st.title("Blesaður")
+st.title("Efficient frontier calculator")
 
-st.write("This is a simple example of a Streamlit app.")
 
-if st.checkbox("Show/Hide"):
-    st.text("This text is shown/hidden based on the checkbox status.")
+#if st.checkbox("Show/Hide"):
+#    st.text("This text is shown/hidden based on the checkbox status.")
 
-if st.checkbox("Show"):
-    st.text("This text /hidden based on the checkbox status.")
+#if st.checkbox("Show"):
+#    st.text("This text /hidden based on the checkbox status.")
 
 import numpy as np
 
@@ -33,7 +32,7 @@ stock_data = yf.download(
     interval = INTERVAL
 ).dropna()
 
-st.write(stock_data)
+#st.write(stock_data)
 
 
 TICKERS_selection = []
