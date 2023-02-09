@@ -125,6 +125,8 @@ if len(TICKERS_selection) > 1:
                     yaxis_title='Y',
                     plot_bgcolor='rgba(0,0,0,0)')
     fig.update_traces(selector=dict(type='scatter', mode='markers'),text=TICKERS_selection, hoverinfo='text')
+    fig.update_layout(xaxis=dict(range=[0, 0.8]),
+                  yaxis=dict(range=[-0.6, 1]))
     st.plotly_chart(fig)
 
 #st.write((mu.squeeze()).shape)
