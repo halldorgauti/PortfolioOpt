@@ -7,11 +7,10 @@ st.write("This is a simple example of a Streamlit app.")
 if st.checkbox("Show/Hide"):
     st.text("This text is shown/hidden based on the checkbox status.")
 
-import numpy as np
-import matplotlib.pyplot as plt
+if st.checkbox("Show/Hide"):
+    st.text("This text is shown/hidden based on the checkbox status.")
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import plotly.graph_objs as go
 
