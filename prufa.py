@@ -1,4 +1,39 @@
 import streamlit as st
+import datetime
+
+def objective_function(x, Sigma):
+    return x.T @ Sigma @ x
+
+def efficient_frontier_optimizer(mu, Sigma, constraints = None, bounds = None):
+    target_returns = np.linspace(np.min(mu), np.max(mu),400)
+    result_success = np.empty_like(target_returns)
+    result_returns = np.empty_like(target_returns)
+    result_vars = np.empty_like(target_returns)
+    #result_w = np.empty_like(target_returns) #reshape this into correct size (array with number of assets and the lenght of target returns)
+
+    for (i, target) in enumerate(target_returns):
+        if constraints is None:
+            _constraints = []
+        else:
+            _constraints = constraints.copy()
+        C_DESIRED_RETURN = LinearConstraint(A = mu.T - RFR, lb = target, ub = target) # mu_e' w = mu_e_p
+        _constraints.append(C_DESIRED_RETURN)
+
+        t = minimize(
+            fun = objective_function,
+            x0 = np.zeros_like(mu),
+            args = (Sigma, ),
+            #method = "SLSQP",
+            constraints=_constraints,
+            bounds=bounds
+        )
+
+        result_success[i] = t.success
+        result_returns[i] = target
+        result_vars[i] = t.fun
+        #result_w[i,] = t.x # make this correct
+    return result_success.astype(bool), result_returns, result_vars#, result_w
+
 
 st.title("Efficient frontier calculator")
 
@@ -24,18 +59,12 @@ TICKERS = ["ICEAIR.IC", "ARION.IC", "BRIM.IC", "EIK.IC","EIM.IC","FESTI.IC","HAG
            "ICESEA.IC","KVIKA.IC","ORIGO.IC","SYN.IC"]
 
 
-START = "2015-06-01"
-INTERVAL = "1wk"
-stock_data = yf.download(
-    tickers = TICKERS,
-    start = START,
-    interval = INTERVAL
-).dropna()
 
 #st.write(stock_data)
 
 
 TICKERS_selection = []
+
 
 
 #Dsiplay checkboxes
@@ -64,8 +93,29 @@ for i,tick in enumerate(TICKERS):
 
 
 
+shortallowed = False
+if st.checkbox("Shorting Allowed", value = True):
+    shortallowed = not shortallowed
+
+
+slider = st.slider("Data collected from: ", min_value=2018, max_value=2022, value=2018, step=1)
+
+datechosen = datetime.datetime(year=slider, month=1, day=1)
+selected_date_str = datechosen.strftime("%Y-%m-%d")
+st.write("Selected year: ", selected_date_str)
+
 
 # Data from exercise sheet 7
+
+
+START = "2015-06-01"
+INTERVAL = "1wk"
+stock_data = yf.download(
+    tickers = TICKERS,
+    start = selected_date_str,
+    interval = INTERVAL
+).dropna()
+
 if len(TICKERS_selection) > 1:
 
     weekly_returns = stock_data["Adj Close"][TICKERS_selection].pct_change().dropna()
@@ -94,32 +144,25 @@ if len(TICKERS_selection) > 1:
     sigma_tan = np.sqrt(mu_e.T @ Sigma_inv @ mu_e) / (np.ones_like(mu_e).T @ Sigma_inv @ mu_e)
     slope = mu_e_tan / sigma_tan
 
-    #plt.figure(figsize=(9,6))
-    #plt.plot(sigmas, mus, label="Efficient Frontier 1")
-    #plt.plot(sigmas, mus, label="Efficient Frontier 2")
-    #plt.plot(sigma_p, (sigma_p*slope+RFR).squeeze(), label="Capital Market Line 1")
-    #plt.plot(sigma_p, (sigma_p*slope_b+RFR).squeeze(), label="Capital Market Line 2")
-    #plt.plot(np.diag(Sigma_b)**0.5, mu_b, "x", mew=6, label="Assets")
-    #plt.plot(sigma_tan, mu_e_tan + RFR, "x", mew=6, label="Tangent Portfolio 1")
-    #plt.plot(sigma_tan_b, mu_e_tan_b + RFR, "x", mew=6, label="Tangent Portfolio 2")
-    #plt.legend(loc="lower right")
-    #plt.xlim([0.0, 0.4])
-    #plt.ylim([0.0, 0.6])
-
-    #plt.figure(figsize=(9*2,6*2))
-    #plt.plot(sigmas, mus, label="Efficient Frontier")
-    #plt.plot(sigma_p, (sigma_p*slope+RFR).squeeze(), label="Capital Market Line")
-    #plt.plot(np.diag(Sigma)**0.5, mu, "x", mew=6, label="Assets")
-    #plt.plot(sigma_tan, mu_e_tan + RFR, "x", mew=6, label="Tangent Portfolio")
-    #plt.xlim([0.0, 0.5])
-    #plt.ylim([0.0, 0.4])
-    #plt.legend(loc="lower right")
-    #None
-
-    fig = go.Figure(data=[go.Scatter(x=sigmas, y=mus, name = "Efficient frontier", line=dict(color='red', width=2)),
+ 
+    if shortallowed:
+        fig = go.Figure(data=[go.Scatter(x=sigmas, y=mus, name = "Efficient frontier", line=dict(color='red', width=2)),
                         go.Scatter(x=sigma_p, y=(sigma_p*slope+RFR).squeeze(), name = "CAPM", line=dict(color='blue', width=2)),
                         go.Scatter(x=np.diag(Sigma)**0.5, y=mu.squeeze(), text = TICKERS_selection, hoverinfo = 'text',mode='markers', name = "Assets", marker=dict(color='green', size=7)),
                         go.Scatter(x=sigma_tan[0], y=mu_e_tan[0]+RFR, mode='markers', name = "Tangent Portfolio",marker=dict(color='orange', size=10))])
+    else:
+        success_a, returns_a, vars_a = efficient_frontier_optimizer(
+        mu, Sigma,
+        constraints = [LinearConstraint(A = np.ones_like(mu).T, lb = 1, ub = 1)],
+        bounds = Bounds(lb=0, ub=np.inf) # w >= 0
+        )
+
+        fig = go.Figure(data=[go.Scatter(x=sigmas, y=mus, name = "Efficient frontier", line=dict(color='red', width=2)),
+                        go.Scatter(x=sigma_p, y=(sigma_p*slope+RFR).squeeze(), name = "CAPM", line=dict(color='blue', width=2)),
+                        go.Scatter(x=np.diag(Sigma)**0.5, y=mu.squeeze(), text = TICKERS_selection, hoverinfo = 'text',mode='markers', name = "Assets", marker=dict(color='green', size=7)),
+                        go.Scatter(x=sigma_tan[0], y=mu_e_tan[0]+RFR, mode='markers', name = "Tangent Portfolio",marker=dict(color='orange', size=10)),
+                        go.Scatter(x=vars_a[success_a]**0.5, y=returns_a[success_a] + RFR, name = "Efficient frontier", line=dict(dash = 'dash',color='purple', width=2))])
+
 
     fig.update_layout(title='Efficient Frontier',
                     xaxis_title='X',
@@ -129,9 +172,9 @@ if len(TICKERS_selection) > 1:
     fig.update_layout(xaxis=dict(range=[0, max(0.8,mu_e_tan[0,0]*1.3)]),
                   yaxis=dict(range=[-0.6, max(1,mu_e_tan[0,0]*1.3)]))
     st.plotly_chart(fig,use_container_width=True)
-st.write(type(mu_e_tan), "  ", mu_e_tan[0,0])
-st.write([-0.6, max(1,mu_e_tan[0,0]*1.3)[0]])
-#st.write(len(TICKERS_selection))
+
+
+st.write(shortallowed)
 
 
 
@@ -142,27 +185,5 @@ st.write([-0.6, max(1,mu_e_tan[0,0]*1.3)[0]])
 
 
 
-
-
-#x = np.linspace(0, 10, 100)
-#y = np.sin(x)
-
-#line_style = False
-
-#if st.checkbox('Show Dotted Line', value=line_style):
-#    line_style = not line_style
-
-#if line_style:
-#    fig = go.Figure(data=[go.Scatter(x=x, y=y, line=dict(color='blue', width=2, dash='dot'))])
-#else:
-#    fig = go.Figure(data=[go.Scatter(x=x, y=y, line=dict(color='red', width=2))])
-
-#fig.update_layout(title='Interactive Line Chart',
-#                  xaxis_title='X',
-#                  yaxis_title='Y')
-#st.plotly_chart(fig)
-
-
-#st.write("Thank you for trying Streamlit!")
 
 
