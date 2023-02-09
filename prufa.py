@@ -43,19 +43,19 @@ col1, col2, col3 = st.columns(3)
 
 for i,tick in enumerate(TICKERS):
     if i<5:
-        if col1.checkbox(tick):
+        if col1.checkbox(tick[:-3]):
             if tick not in TICKERS_selection:
                 TICKERS_selection += [tick]
             else:
                 TICKERS_selection.remove(tick)
     elif 5<=i<10:
-        if col2.checkbox(tick):
+        if col2.checkbox(tick[:-3]):
             if tick not in TICKERS_selection:
                 TICKERS_selection += [tick]
             else:
                 TICKERS_selection.remove(tick)
     else:
-        if col3.checkbox(tick):
+        if col3.checkbox(tick[:-3]):
             if tick not in TICKERS_selection:
                 TICKERS_selection += [tick]
             else:
