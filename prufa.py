@@ -83,7 +83,7 @@ if len(TICKERS_selection) > 1:
     mu_gmv = b/c
     var_gmv = 1/c
 
-    mus = np.linspace(np.min(mu) - np.ptp(mu), np.max(mu) + np.ptp(mu))
+    mus = np.linspace(np.min(mu) - np.ptp(mu)*2, np.max(mu) + np.ptp(mu)*2)
     sigmas = np.sqrt((c*mus**2 - 2*b*mus + a) / (a*c - b**2)).squeeze()
 
     sigma_p = np.linspace(0, 1)
@@ -116,20 +116,21 @@ if len(TICKERS_selection) > 1:
     #plt.legend(loc="lower right")
     #None
 
-    fig = go.Figure(data=[go.Scatter(x=sigmas, y=mus, line=dict(color='red', width=2)),
-                        go.Scatter(x=sigma_p, y=(sigma_p*slope+RFR).squeeze(), line=dict(color='blue', width=2)),
-                        go.Scatter(x=np.diag(Sigma)**0.5, y=mu.squeeze(),mode='markers', marker=dict(color='green', size=7))])
+    fig = go.Figure(data=[go.Scatter(x=sigmas, y=mus, name = "Efficient frontier", line=dict(color='red', width=2)),
+                        go.Scatter(x=sigma_p, y=(sigma_p*slope+RFR).squeeze(), name = "CAPM", line=dict(color='blue', width=2)),
+                        go.Scatter(x=np.diag(Sigma)**0.5, y=mu.squeeze(), text = TICKERS_selection, hoverinfo = 'text',mode='markers', name = "Assets", marker=dict(color='green', size=7)),
+                        go.Scatter(x=sigma_tan[0], y=mu_e_tan[0]+RFR, mode='markers', name = "Tangent Portfolio",marker=dict(color='orange', size=10))])
 
     fig.update_layout(title='Efficient Frontier',
                     xaxis_title='X',
                     yaxis_title='Y',
                     plot_bgcolor='rgba(0,0,0,0)')
-    fig.update_traces(selector=dict(type='scatter', mode='markers'),text=TICKERS_selection, hoverinfo='text')
-    fig.update_layout(xaxis=dict(range=[0, 0.8]),
-                  yaxis=dict(range=[-0.6, 1]))
+    #fig.update_traces(selector=dict(type='scatter', mode='markers'),text=TICKERS_selection, hoverinfo='text')
+    fig.update_layout(xaxis=dict(range=[0, max(0.8,mu_e_tan[0,0]*1.3)]),
+                  yaxis=dict(range=[-0.6, max(1,mu_e_tan[0,0]*1.3)]))
     st.plotly_chart(fig)
-
-#st.write((mu.squeeze()).shape)
+st.write(type(mu_e_tan), "  ", mu_e_tan[0,0])
+st.write([-0.6, max(1,mu_e_tan[0,0]*1.3)[0]])
 #st.write(len(TICKERS_selection))
 
 
