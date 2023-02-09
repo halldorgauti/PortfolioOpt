@@ -128,7 +128,7 @@ if len(TICKERS_selection) > 1:
     st.plotly_chart(fig)
 
 #st.write((mu.squeeze()).shape)
-st.write(len(TICKERS_selection))
+#st.write(len(TICKERS_selection))
 
 
 
