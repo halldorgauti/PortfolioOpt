@@ -160,6 +160,6 @@ if len(TICKERS_selection) > 1:
 #st.plotly_chart(fig)
 
 
-st.write("Thank you for trying Streamlit!")
+#st.write("Thank you for trying Streamlit!")
 
 
