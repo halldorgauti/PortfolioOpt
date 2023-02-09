@@ -7,8 +7,8 @@ st.write("This is a simple example of a Streamlit app.")
 if st.checkbox("Show/Hide"):
     st.text("This text is shown/hidden based on the checkbox status.")
 
-if st.checkbox("Show/Hide"):
-    st.text("This text is shown/hidden based on the checkbox status.")
+if st.checkbox("Show"):
+    st.text("This text /hidden based on the checkbox status.")
 
 import numpy as np
 
